@@ -1,3 +1,5 @@
+import { db } from "@/db";
+import { messages } from "@/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import * as z from "zod";
@@ -8,6 +10,7 @@ const messageSchema = z.object({
 });
 
 const saveChatSchema = z.object({
+  chatId: z.string().min(1, "Chat id is required"),
   message: z.array(messageSchema).min(1, "At least one message is required"),
 });
 
@@ -23,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body: unknown = await req.json();
-    console.log("RAW BODY:", body);
+    // console.log("RAW BODY:", body);
 
     const parsed = saveChatSchema.safeParse(body);
 
@@ -32,18 +35,26 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           message: "Invalid payload",
-          errors: parsed.error.flatten().fieldErrors,
+          errors: z.flattenError(parsed.error).fieldErrors,
         },
         { status: 400 },
       );
     }
-
+    const { chatId, message } = parsed.data;
     // At this point payload is fully validated
-    // console.log("VALIDATED PAYLOAD", parsed.data);
+    const rows = message.map((msg) => ({
+      chatId,
+      role: msg.role,
+      text: msg.text as string,
+    }));
+    const [dbInsert] = await db.insert(messages).values(rows).returning();
 
     return NextResponse.json({
       success: true,
-      message: "Payload is valid",
+      message: "Saved",
+      metadata: {
+        data: dbInsert.id,
+      },
     });
   } catch (error) {
     console.error("API ERROR:", error);

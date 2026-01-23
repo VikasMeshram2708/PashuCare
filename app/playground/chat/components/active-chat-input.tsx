@@ -7,11 +7,17 @@ import { useChat } from "@ai-sdk/react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
+import { useParams } from "next/navigation";
 
 export default function ActiveChatInput() {
   const [inputValue, setInputValue] = useState("");
+
+  // get params
+  const { id: chatId } = useParams();
+
   const { messages, sendMessage } = useChat({
     onFinish: async ({ message }) => {
+      if (!chatId) return;
       // Extract assistant text correctly
       const assistantText = message.parts
         .filter((p) => p.type === "text")
@@ -47,7 +53,7 @@ export default function ActiveChatInput() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ message: payload }),
+          body: JSON.stringify({ chatId, message: payload }),
         });
         const json = await res.json();
         console.log("json", json);
