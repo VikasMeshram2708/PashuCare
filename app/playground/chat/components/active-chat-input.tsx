@@ -10,7 +10,52 @@ import { cn } from "@/lib/utils";
 
 export default function ActiveChatInput() {
   const [inputValue, setInputValue] = useState("");
-  const { messages, sendMessage } = useChat();
+  const { messages, sendMessage } = useChat({
+    onFinish: async ({ message }) => {
+      // Extract assistant text correctly
+      const assistantText = message.parts
+        .filter((p) => p.type === "text")
+        .map((p) => p.text)
+        .join("");
+
+      // Get last user message from messages history
+      const lastUserMessage = [...messages]
+        .reverse()
+        .find((m) => m.role === "user");
+
+      const userText =
+        lastUserMessage?.parts
+          ?.filter((p) => p.type === "text")
+          .map((p) => p.text)
+          .join("") ?? "";
+
+      const payload = [
+        {
+          role: "user",
+          text: userText,
+        },
+        {
+          role: "assistant",
+          text: assistantText,
+        },
+      ];
+
+      // console.log("FINAL PAYLOAD", payload);
+      try {
+        const res = await fetch("/api/chat/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: payload }),
+        });
+        const json = await res.json();
+        console.log("json", json);
+      } catch (error) {
+        console.error(error);
+      }
+    },
+  });
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   // Auto-scroll while streaming (ChatGPT-like behavior)
