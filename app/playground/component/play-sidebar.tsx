@@ -38,6 +38,9 @@ import Link from "next/link";
 import type { Route } from "next";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SelectChats } from "@/db/schema/chat";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type SidebarLink = {
   href: Route;
@@ -68,8 +71,9 @@ const sidebarLinks: readonly SidebarLink[] = [
   },
 ] as const;
 
-export default function PlaySidebar() {
+export default function PlaySidebar({ chats }: { chats: Array<SelectChats> }) {
   const { state } = useSidebar();
+  const router = useRouter();
   const isCollapsed = state === "collapsed";
 
   return (
@@ -94,13 +98,19 @@ export default function PlaySidebar() {
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton>
+              <SidebarMenuButton
+                type="button"
+                onClick={() => router.push("/playground/chat")}
+              >
                 <PlusIcon />
                 New chat
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton>
+              <SidebarMenuButton
+                type="button"
+                onClick={() => toast.warning("Coming soon!")}
+              >
                 <SearchIcon />
                 Search chat
               </SidebarMenuButton>
@@ -133,7 +143,11 @@ export default function PlaySidebar() {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton>message 1</SidebarMenuButton>
+                    {chats?.map((chat) => (
+                      <p className="text-sm" key={chat.id}>
+                        {chat.title}
+                      </p>
+                    ))}
                   </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
