@@ -9,97 +9,70 @@ import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
 
+function getText(message?: UIMessage): string {
+  return (
+    message?.parts
+      .filter((p) => p.type === "text")
+      .map((p) => p.text)
+      .join("") ?? ""
+  );
+}
+
 export default function ActiveChatInput({
   initialMessages,
 }: {
-  initialMessages: Array<UIMessage>;
+  initialMessages: UIMessage[];
 }) {
-  // console.log("it", initialMessages);
   const [inputValue, setInputValue] = useState("");
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const didBootstrapRef = useRef(false);
 
-  // get params
-  const { id: chatId } = useParams();
-
-  // get the last message
-  const lastMessage = initialMessages.at(-1);
-  const lastText = lastMessage?.parts
-    .filter((part) => part)
-    .map((p) => {
-      if (p.type === "text") {
-        return p.text ?? "";
-      }
-    })?.[0];
+  const { id: chatId } = useParams<{ id: string }>();
 
   const { messages, sendMessage, setMessages } = useChat({
-    id: chatId as string,
-    messages: initialMessages,
+    id: chatId,
     onFinish: async ({ message }) => {
       if (!chatId) return;
-      // Extract assistant text correctly
-      const assistantText = message.parts
-        .filter((p) => p.type === "text")
-        .map((p) => p.text)
-        .join("");
 
-      // Get last user message from messages history
-      const lastUserMessage = [...messages]
-        .reverse()
-        .find((m) => m.role === "user");
+      const assistantText = getText(message);
+      const lastUser = [...messages].reverse().find((m) => m.role === "user");
+      const userText = getText(lastUser);
 
-      const userText =
-        lastUserMessage?.parts
-          ?.filter((p) => p.type === "text")
-          .map((p) => p.text)
-          .join("") ?? "";
-
-      const payload = [
-        {
-          role: "user",
-          text: userText,
-        },
-        {
-          role: "assistant",
-          text: assistantText,
-        },
-      ];
-
-      // console.log("FINAL PAYLOAD", payload);
-      try {
-        const res = await fetch("/api/chat/save", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ chatId, message: payload }),
-        });
-        const json = await res.json();
-        console.log("json", json);
-      } catch (error) {
-        console.error(error);
-      }
+      await fetch("/api/chat/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chatId,
+          message: [
+            { role: "user", text: userText },
+            { role: "assistant", text: assistantText },
+          ],
+        }),
+      });
     },
   });
 
-  // make call for the lastText
-  useEffect(() => {
-    if (!lastText?.length) return;
-    const isUser = lastMessage?.role === "user";
-    if (isUser) {
-      sendMessage({
-        text: lastText,
-      });
-    }
-  }, [lastMessage]);
-
+  /* ───────── Hydrate history ONCE ───────── */
   useEffect(() => {
     if (initialMessages.length > 0) {
       setMessages(initialMessages);
     }
   }, [initialMessages, setMessages]);
 
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  /* ───────── Bootstrap AI ONCE ───────── */
+  useEffect(() => {
+    if (!messages.length) return;
+    if (didBootstrapRef.current) return;
 
-  // Auto-scroll while streaming (ChatGPT-like behavior)
+    const last = messages.at(-1);
+
+    if (last?.role === "user") {
+      didBootstrapRef.current = true;
+      sendMessage({ text: getText(last) });
+    }
+  }, [messages, sendMessage]);
+
+  /* ───────── Auto-scroll ───────── */
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -108,24 +81,16 @@ export default function ActiveChatInput({
     e.preventDefault();
     if (!inputValue.trim()) return;
 
-    sendMessage({
-      text: inputValue,
-    });
-
+    sendMessage({ text: inputValue });
     setInputValue("");
   }
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-6 px-4 py-6">
         {messages.map((msg, index) => {
           const isUser = msg.role === "user";
-
-          const content = msg.parts
-            .filter((p) => p.type === "text")
-            .map((p) => p.text)
-            .join("");
+          const content = getText(msg);
 
           if (!content) return null;
 
@@ -146,51 +111,28 @@ export default function ActiveChatInput({
                     : "bg-muted text-foreground",
                 )}
               >
-                <Markdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    p: ({ children }) => (
-                      <p className="mb-3 last:mb-0">{children}</p>
-                    ),
-                  }}
-                >
-                  {content}
-                </Markdown>
+                <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
               </div>
             </div>
           );
         })}
-
-        {/* Scroll anchor */}
         <div ref={bottomRef} />
       </div>
 
-      {/* Input (fixed at bottom) */}
       <div className="bg-background px-4 py-3">
         <form onSubmit={onSubmit}>
           <div className="flex items-center gap-2 rounded-full border px-3 py-2">
             <input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              type="text"
               placeholder="Type a message..."
               className="w-full bg-transparent px-3 py-2 text-[15px] focus-visible:outline-none"
             />
-
-            <Button
-              disabled={!inputValue.trim()}
-              type="submit"
-              size="icon"
-              className="rounded-full"
-            >
+            <Button disabled={!inputValue.trim()} type="submit" size="icon">
               <SendIcon />
             </Button>
           </div>
         </form>
-
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          Pashucare AI can make mistakes.
-        </p>
       </div>
     </div>
   );
