@@ -26,6 +26,7 @@ export default function ActiveChatInput({
   const [inputValue, setInputValue] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const didBootstrapRef = useRef(false);
+  const didHydrateRef = useRef(false);
 
   const { id: chatId } = useParams<{ id: string }>();
 
@@ -54,10 +55,17 @@ export default function ActiveChatInput({
 
   /* ───────── Hydrate history ONCE ───────── */
   useEffect(() => {
-    if (initialMessages.length > 0) {
+    // Only hydrate if we have initial messages AND no messages are currently loaded
+    // This prevents overwriting messages that are being processed by the chat hook
+    if (
+      initialMessages.length > 0 &&
+      messages.length === 0 &&
+      !didHydrateRef.current
+    ) {
       setMessages(initialMessages);
+      didHydrateRef.current = true;
     }
-  }, [initialMessages, setMessages]);
+  }, [initialMessages, setMessages, messages.length]);
 
   /* ───────── Bootstrap AI ONCE ───────── */
   useEffect(() => {
@@ -65,8 +73,14 @@ export default function ActiveChatInput({
     if (didBootstrapRef.current) return;
 
     const last = messages.at(-1);
+    const secondLast = messages.at(-2);
 
-    if (last?.role === "user") {
+    // Only bootstrap if the last message is from user AND there's no assistant response yet
+    // This allows AI to respond even when redirecting from /chat
+    if (
+      last?.role === "user" &&
+      (!secondLast || secondLast.role !== "assistant")
+    ) {
       didBootstrapRef.current = true;
       sendMessage({ text: getText(last) });
     }
@@ -93,6 +107,17 @@ export default function ActiveChatInput({
           const content = getText(msg);
 
           if (!content) return null;
+
+          // Skip duplicate user messages (prevent rendering the same message twice)
+          // This happens when redirecting from /chat page where message is loaded from DB
+          // and then bootstrap sends it again
+          if (isUser && index > 0) {
+            const prevMsg = messages[index - 1];
+            const prevContent = getText(prevMsg);
+            if (prevMsg?.role === "user" && prevContent === content) {
+              return null; // Skip duplicate
+            }
+          }
 
           return (
             <div

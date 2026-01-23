@@ -10,8 +10,7 @@
 - [ ] Make the hero section image to transform on z-index like.
 - [ ] Add isActive feature to sidebar.
 - [ ] Add Delete / Rename Chat Feature.
-
-TODO:// remove the play-breadcrumb component.
+- [ ] Add pagination on playsidebar chats and on the /chat/123.. page also
 
 ## Future Stretch
 
