@@ -9,7 +9,7 @@
 - [ ] Make the toast notification rich color green on success, red on error, orange on warning.
 - [ ] Make the hero section image to transform on z-index like.
 - [ ] Add isActive feature to sidebar.
-- [ ] Add Delete Chat Feature.
+- [ ] Add Delete / Rename Chat Feature.
 
 TODO:// remove the play-breadcrumb component.
 

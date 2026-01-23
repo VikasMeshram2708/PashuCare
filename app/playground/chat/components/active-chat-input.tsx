@@ -20,7 +20,18 @@ export default function ActiveChatInput({
   // get params
   const { id: chatId } = useParams();
 
+  // get the last message
+  const lastMessage = initialMessages.at(-1);
+  const lastText = lastMessage?.parts
+    .filter((part) => part)
+    .map((p) => {
+      if (p.type === "text") {
+        return p.text ?? "";
+      }
+    })?.[0];
+
   const { messages, sendMessage, setMessages } = useChat({
+    id: chatId as string,
     messages: initialMessages,
     onFinish: async ({ message }) => {
       if (!chatId) return;
@@ -68,6 +79,17 @@ export default function ActiveChatInput({
       }
     },
   });
+
+  // make call for the lastText
+  useEffect(() => {
+    if (!lastText?.length) return;
+    const isUser = lastMessage?.role === "user";
+    if (isUser) {
+      sendMessage({
+        text: lastText,
+      });
+    }
+  }, [lastMessage]);
 
   useEffect(() => {
     if (initialMessages.length > 0) {

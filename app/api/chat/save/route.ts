@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { messages } from "@/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import * as z from "zod";
 
@@ -65,5 +66,7 @@ export async function POST(req: NextRequest) {
       },
       { status: 500 },
     );
+  } finally {
+    revalidatePath("/playground");
   }
 }
