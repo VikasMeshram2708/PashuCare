@@ -1,3 +1,4 @@
+import { getChats } from "@/actions/get-chats";
 import {
   Card,
   CardAction,
@@ -6,13 +7,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { currentUser } from "@clerk/nextjs/server";
 import { PawPrintIcon } from "lucide-react";
+import { notFound } from "next/navigation";
 
-export default function PlayCards() {
+export default async function PlayCards() {
+  const user = await currentUser();
+  if (!user) notFound();
+
+  const result = await getChats({ userId: user.id });
+
+  const total = result?.metadata?.total;
+
   const cardLinks = [
     {
       label: "Total Chats",
-      value: 20,
+      value: total,
       description: "Created so far",
     },
     {

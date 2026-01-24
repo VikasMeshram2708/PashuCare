@@ -3,6 +3,7 @@ import PlaySidebar from "./component/play-sidebar";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getChats } from "@/actions/get-chats";
+import MobileHeader from "./component/mobile-header";
 
 export default async function PlayGroundLayout({
   children,
@@ -24,7 +25,10 @@ export default async function PlayGroundLayout({
         <PlaySidebar chats={chats ?? []} />
 
         {/* Main content */}
-        <main className="flex-1 min-w-0 p-4">{children}</main>
+        <main className="flex-1 min-w-0 p-4">
+          <MobileHeader />
+          {children}
+        </main>
       </div>
     </SidebarProvider>
   );

@@ -24,10 +24,10 @@ import {
   BotIcon,
   ClipboardPlusIcon,
   EllipsisVerticalIcon,
+  LayoutDashboardIcon,
   MessageCircleIcon,
   PlusIcon,
   SearchIcon,
-  TableOfContentsIcon,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -52,7 +52,7 @@ const sidebarLinks: readonly SidebarLink[] = [
   {
     href: "/playground",
     label: "Home",
-    icon: TableOfContentsIcon,
+    icon: LayoutDashboardIcon,
   },
   {
     href: "/playground/chat",
