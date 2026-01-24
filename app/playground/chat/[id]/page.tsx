@@ -11,6 +11,7 @@ function toUIMessages(rows: Array<SelectMessage>): Array<UIMessage> {
     parts: [{ type: "text", text: r.text }],
   }));
 }
+
 export default async function ChatDetailPage({
   params,
 }: {

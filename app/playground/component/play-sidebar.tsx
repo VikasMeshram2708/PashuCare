@@ -52,18 +52,13 @@ type SidebarLink = {
 const sidebarLinks: readonly SidebarLink[] = [
   {
     href: "/playground",
-    label: "Overview",
+    label: "Home",
     icon: TableOfContentsIcon,
   },
   {
     href: "/playground/chat",
     label: "Chats",
     icon: MessageCircleIcon,
-  },
-  {
-    href: "/playground/activity",
-    label: "Activity",
-    icon: ActivityIcon,
   },
   {
     href: "/playground/health-report",
@@ -138,7 +133,6 @@ export default function PlaySidebar({ chats }: { chats: Array<SelectChats> }) {
           </SidebarMenu>
         </SidebarGroup>
         {/* chats */}
-        {/* TODO: hide message when sidebar is collapsed */}
         {!isCollapsed && (
           <SidebarGroup>
             <SidebarGroup>
@@ -191,7 +185,7 @@ export default function PlaySidebar({ chats }: { chats: Array<SelectChats> }) {
                     userButtonBox: "w-full text-white flex justify-start",
                   },
                 }}
-                showName={true}
+                showName={isCollapsed ? false : true}
               />
             </SidebarMenuButton>
           </SidebarMenuItem>

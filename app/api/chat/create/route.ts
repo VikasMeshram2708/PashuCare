@@ -4,6 +4,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import * as z from "zod";
 import slugify from "slugify";
+import { revalidatePath } from "next/cache";
 
 const chatSchema = z.object({
   text: z.string().min(1, "Text is required").max(100, "Text is too long"),
@@ -65,5 +66,7 @@ export async function POST(req: NextRequest) {
       success: false,
       message: "Something went wrong.",
     });
+  } finally {
+    revalidatePath("/playground/chat");
   }
 }

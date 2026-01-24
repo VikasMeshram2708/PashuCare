@@ -24,7 +24,7 @@ export default async function PlayGroundLayout({
         <PlaySidebar chats={chats ?? []} />
 
         {/* Main content */}
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="flex-1 min-w-0 p-4">{children}</main>
       </div>
     </SidebarProvider>
   );
