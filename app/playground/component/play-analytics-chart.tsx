@@ -10,9 +10,9 @@ import {
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  // PieChart,
+  // Pie,
+  // Cell,
 } from "recharts";
 
 type Chat = {
@@ -24,10 +24,10 @@ const LINE_COLOR = "#22c55e"; // emerald
 const AREA_COLOR = "#22c55e";
 const GRID_COLOR = "#2a2a2a";
 
-const PIE_COLORS = [
-  "#3b82f6", // blue (Pinned)
-  "#f97316", // orange (Unpinned)
-];
+// const PIE_COLORS = [
+//   "#3b82f6", // blue (Pinned)
+//   "#f97316", // orange (Unpinned)
+// ];
 
 export function PlayAnalyticsCharts({ chats }: { chats: Chat[] }) {
   /* ---------- Line chart data ---------- */
@@ -37,16 +37,16 @@ export function PlayAnalyticsCharts({ chats }: { chats: Chat[] }) {
   }));
 
   /* ---------- Pie chart data ---------- */
-  const pinned = chats.filter((c) => c.isPinned).length;
-  const unpinned = chats.length - pinned;
+  // const pinned = chats.filter((c) => c.isPinned).length;
+  // const unpinned = chats.length - pinned;
 
-  const pieChartData = [
-    { name: "Pinned", value: pinned },
-    { name: "Unpinned", value: unpinned },
-  ];
+  // const pieChartData = [
+  //   { name: "Pinned", value: pinned },
+  //   { name: "Unpinned", value: unpinned },
+  // ];
 
   return (
-    <section className="grid gap-6 px-4 md:grid-cols-2 md:px-6">
+    <section className="px-4 md:px-6">
       {/* Chat Growth */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
@@ -98,7 +98,7 @@ export function PlayAnalyticsCharts({ chats }: { chats: Chat[] }) {
       </Card>
 
       {/* Pinned vs Unpinned */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      {/* <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-zinc-100">
             Pinned vs Unpinned
@@ -132,7 +132,6 @@ export function PlayAnalyticsCharts({ chats }: { chats: Chat[] }) {
             </ResponsiveContainer>
           </div>
 
-          {/* Legend */}
           <div className="flex justify-center gap-6 text-sm text-zinc-200">
             <div className="flex items-center gap-2">
               <span
@@ -150,7 +149,7 @@ export function PlayAnalyticsCharts({ chats }: { chats: Chat[] }) {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </section>
   );
 }

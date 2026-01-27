@@ -2,7 +2,7 @@ import ChatInput from "./components/chat-input";
 
 export default function ChatPage() {
   return (
-    <div className="flex h-screen flex-col min-h-0 min-w-0">
+    <div className="flex h-[90svh] flex-col min-h-0 min-w-0">
       {/* Header */}
       <h1 className="text-base sm:text-lg md:text-2xl font-bold text-center py-3 sm:py-4 px-2">
         {"What's"} in your mind today?

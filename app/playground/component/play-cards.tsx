@@ -27,7 +27,7 @@ export default async function PlayCards() {
     },
     {
       label: "Reports Checked",
-      value: 10,
+      value: 0,
       description: "Reviewed successfully",
     },
   ];
