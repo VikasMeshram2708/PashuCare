@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 export default function CTA() {
   return (
     <section className="w-full">
-      <div className="mx-auto max-w-5xl px-6 py-24">
+      <div className="mx-auto max-w-5xl py-24">
         {/* Parent MUST be relative */}
         <div className="relative rounded-2xl border border-border/60 bg-background/80 p-10 text-center shadow-lg backdrop-blur-md sm:p-16">
           {/* Background gradients */}
@@ -69,8 +69,8 @@ export default function CTA() {
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <SignedIn>
               <Button asChild size="lg" className="gap-2">
-                <Link href="/playground">
-                  Go to playground
+                <Link href="/ai">
+                  Start now
                   <ArrowRightIcon className="h-4 w-4" />
                 </Link>
               </Button>
