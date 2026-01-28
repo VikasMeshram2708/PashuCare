@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 import { useDropzone } from "react-dropzone";
 import {
   Upload,
-  X,
   FileImage,
   Film,
   AlertCircle,
@@ -38,31 +38,31 @@ export function FileUploadZone() {
   const [error, setError] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-  const getFileType = (file: File): FileType | null => {
-    if (file.type.startsWith("image/")) return "image";
-    if (file.type.startsWith("video/")) return "video";
-    return null;
-  };
-
-  const validateFile = (file: File): string | null => {
-    const fileType = getFileType(file);
-
-    if (!fileType) {
-      return "Only images (PNG, JPG, GIF, WebP) and videos (MP4, WebM, MOV) are supported";
-    }
-
-    if (fileType === "image" && file.size > MAX_IMAGE_SIZE) {
-      return `Image too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max: 5MB`;
-    }
-
-    if (fileType === "video" && file.size > MAX_VIDEO_SIZE) {
-      return `Video too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max: 10MB`;
-    }
-
-    return null;
-  };
-
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    const getFileType = (file: File): FileType | null => {
+      if (file.type.startsWith("image/")) return "image";
+      if (file.type.startsWith("video/")) return "video";
+      return null;
+    };
+
+    const validateFile = (file: File): string | null => {
+      const fileType = getFileType(file);
+
+      if (!fileType) {
+        return "Only images (PNG, JPG, GIF, WebP) and videos (MP4, WebM, MOV) are supported";
+      }
+
+      if (fileType === "image" && file.size > MAX_IMAGE_SIZE) {
+        return `Image too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max: 5MB`;
+      }
+
+      if (fileType === "video" && file.size > MAX_VIDEO_SIZE) {
+        return `Video too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max: 10MB`;
+      }
+
+      return null;
+    };
+
     setError(null);
 
     if (acceptedFiles.length === 0) return;
@@ -104,7 +104,7 @@ export function FileUploadZone() {
       },
       maxFiles: 1,
       multiple: false,
-      noClick: !!uploadedFile, // Prevent click when file exists
+      noClick: !!uploadedFile,
     });
 
   const formatFileSize = (bytes: number): string => {
@@ -117,12 +117,11 @@ export function FileUploadZone() {
 
   return (
     <div className="w-full space-y-6">
-      {/* Main Upload/Display Area */}
       {!uploadedFile ? (
         <div
           {...getRootProps()}
           className={cn(
-            "relative flex flex-col items-center justify-center w-full min-h-[280px] border-2 border-dashed rounded-xl transition-all duration-200 cursor-pointer",
+            "relative flex flex-col items-center justify-center w-full min-h-70 border-2 border-dashed rounded-xl transition-all duration-200 cursor-pointer",
             "hover:border-primary/50 hover:bg-muted/30",
             isDragActive && "border-primary bg-primary/5 scale-[1.01]",
             isDragReject && "border-destructive bg-destructive/5",
@@ -174,7 +173,7 @@ export function FileUploadZone() {
       ) : (
         <div className="relative w-full">
           {/* Success State - File Info */}
-          <div className="flex flex-col items-center justify-center w-full min-h-[120px] border rounded-xl bg-muted/20 p-6 mb-6">
+          <div className="flex flex-col items-center justify-center w-full min-h-30 border rounded-xl bg-muted/20 p-6 mb-6">
             <div className="flex items-center gap-4 w-full">
               <div
                 className={cn(
@@ -222,7 +221,7 @@ export function FileUploadZone() {
             </div>
           </div>
 
-          {/* Preview Thumbnail - Beneath Upload Area */}
+          {/* Preview Thumbnail */}
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
               <p className="text-sm font-medium text-foreground">Preview</p>
@@ -230,7 +229,7 @@ export function FileUploadZone() {
             </div>
 
             <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-              <DialogTrigger>
+              <DialogTrigger asChild>
                 <div
                   className={cn(
                     "relative group cursor-pointer rounded-xl overflow-hidden border-2 border-transparent",
@@ -238,40 +237,41 @@ export function FileUploadZone() {
                     "transition-all duration-300",
                     "hover:border-primary/50 hover:shadow-lg",
                     "active:scale-[0.99]",
+                    "w-full aspect-video max-h-60", // Added w-full and moved sizing here
                   )}
                 >
-                  {/* Thumbnail Container */}
-                  <div className="relative aspect-video max-h-[240px] flex items-center justify-center bg-black/5">
-                    {uploadedFile.type === "image" ? (
-                      <img
-                        src={uploadedFile.preview}
-                        alt="Preview thumbnail"
-                        className="w-full h-full object-contain max-h-[240px]"
-                      />
-                    ) : (
-                      <video
-                        src={uploadedFile.preview}
-                        className="w-full h-full object-contain max-h-[240px]"
-                        preload="metadata"
-                      />
-                    )}
+                  {uploadedFile.type === "image" ? (
+                    <Image
+                      src={uploadedFile.preview}
+                      alt="Preview thumbnail"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                      sizes="(max-width: 768px) 100vw, 600px"
+                    />
+                  ) : (
+                    <video
+                      src={uploadedFile.preview}
+                      className="w-full h-full object-contain"
+                      preload="metadata"
+                    />
+                  )}
 
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-end pb-6">
-                      <div className="p-3 bg-white/20 backdrop-blur-md rounded-full mb-2">
-                        <ZoomIn className="w-6 h-6 text-white" />
-                      </div>
-                      <span className="text-white text-sm font-medium">
-                        Click to view full size
-                      </span>
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-end pb-6 pointer-events-none">
+                    <div className="p-3 bg-white/20 backdrop-blur-md rounded-full mb-2">
+                      <ZoomIn className="w-6 h-6 text-white" />
                     </div>
+                    <span className="text-white text-sm font-medium">
+                      Click to view full size
+                    </span>
                   </div>
                 </div>
               </DialogTrigger>
 
               {/* Full Screen Modal */}
               <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95 border-none rounded-2xl">
-                <DialogHeader className="absolute top-0 left-0 right-0 z-50 p-6 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+                <DialogHeader className="absolute top-0 left-0 right-0 z-50 p-6 bg-linear-to-b from-black/80 to-transparent pointer-events-none">
                   <DialogTitle className="text-white flex items-center justify-between text-lg pointer-events-auto">
                     <span className="truncate pr-8 drop-shadow-md">
                       {uploadedFile.file.name}
@@ -282,13 +282,19 @@ export function FileUploadZone() {
                   </DialogTitle>
                 </DialogHeader>
 
-                <div className="flex items-center justify-center min-h-[300px] h-[90vh] p-2">
+                <div
+                  className="relative w-full h-[90vh] flex items-center justify-center p-2"
+                  onClick={() => setIsPreviewOpen(false)}
+                >
                   {uploadedFile.type === "image" ? (
-                    <img
+                    <Image
                       src={uploadedFile.preview}
                       alt="Full size preview"
-                      className="max-w-full max-h-full object-contain rounded-lg"
-                      onClick={() => setIsPreviewOpen(false)}
+                      fill
+                      className="object-contain cursor-pointer"
+                      unoptimized
+                      sizes="95vw"
+                      priority
                     />
                   ) : (
                     <video
@@ -297,6 +303,7 @@ export function FileUploadZone() {
                       autoPlay
                       className="max-w-full max-h-full rounded-lg"
                       controlsList="nodownload"
+                      onClick={(e) => e.stopPropagation()} // Prevent closing when clicking video controls
                     >
                       Your browser does not support the video tag.
                     </video>
@@ -305,7 +312,7 @@ export function FileUploadZone() {
               </DialogContent>
             </Dialog>
 
-            {/* Mobile Actions - Only show on small screens */}
+            {/* Mobile Actions */}
             <div className="flex gap-2 sm:hidden mt-4">
               <Button
                 variant="outline"

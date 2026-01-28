@@ -4,35 +4,45 @@ import { useDropzone } from "react-dropzone";
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_VIDEO_SIZE = 10 * 1024 * 1024; // 10MB
 
+type FileType = "image" | "video";
+
+interface UploadedFile {
+  file: File;
+  preview: string;
+  type: FileType;
+  size: number;
+}
+
 export function useFileUpload() {
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const getFileType = (file: File): FileType => {
-    if (file.type.startsWith("image/")) return "image";
-    if (file.type.startsWith("video/")) return "video";
-    return null;
-  };
-
-  const validateFile = (file: File): string | null => {
-    const fileType = getFileType(file);
-
-    if (!fileType) {
-      return "Only images and videos are supported";
-    }
-
-    if (fileType === "image" && file.size > MAX_IMAGE_SIZE) {
-      return `Image size must be less than 5MB (current: ${(file.size / 1024 / 1024).toFixed(1)}MB)`;
-    }
-
-    if (fileType === "video" && file.size > MAX_VIDEO_SIZE) {
-      return `Video size must be less than 10MB (current: ${(file.size / 1024 / 1024).toFixed(1)}MB)`;
-    }
-
-    return null;
-  };
-
+  // Moved inside useCallback to avoid dependency changes + stale closures
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    const getFileType = (file: File): FileType | null => {
+      if (file.type.startsWith("image/")) return "image";
+      if (file.type.startsWith("video/")) return "video";
+      return null;
+    };
+
+    const validateFile = (file: File): string | null => {
+      const fileType = getFileType(file);
+
+      if (!fileType) {
+        return "Only images and videos are supported";
+      }
+
+      if (fileType === "image" && file.size > MAX_IMAGE_SIZE) {
+        return `Image size must be less than 5MB (current: ${(file.size / 1024 / 1024).toFixed(1)}MB)`;
+      }
+
+      if (fileType === "video" && file.size > MAX_VIDEO_SIZE) {
+        return `Video size must be less than 10MB (current: ${(file.size / 1024 / 1024).toFixed(1)}MB)`;
+      }
+
+      return null;
+    };
+
     setError(null);
 
     if (acceptedFiles.length === 0) return;
@@ -45,7 +55,7 @@ export function useFileUpload() {
       return;
     }
 
-    const fileType = getFileType(file);
+    const fileType = getFileType(file)!; // Non-null assertion safe after validation
     const preview = URL.createObjectURL(file);
 
     setUploadedFile({
@@ -54,15 +64,18 @@ export function useFileUpload() {
       type: fileType,
       size: file.size,
     });
-  }, []);
+  }, []); // Empty array = stable reference, no re-registrations in useDropzone
 
+  // Functional state update to avoid 'uploadedFile' dependency
   const removeFile = useCallback(() => {
-    if (uploadedFile?.preview) {
-      URL.revokeObjectURL(uploadedFile.preview);
-    }
-    setUploadedFile(null);
+    setUploadedFile((current) => {
+      if (current?.preview) {
+        URL.revokeObjectURL(current.preview);
+      }
+      return null;
+    });
     setError(null);
-  }, [uploadedFile]);
+  }, []); // Empty array = stable reference
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } =
     useDropzone({
