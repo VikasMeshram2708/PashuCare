@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Shield, Zap, Image as ImageIcon, FileVideo } from "lucide-react";
 import { FileUploadZone } from "./components/file-upload-zone";
 
-export default function UploadPage() {
+export default function HealthReportsPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8 lg:p-12">
       <div className="max-w-4xl mx-auto space-y-8">
