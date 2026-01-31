@@ -4,13 +4,35 @@ import { LogoFn } from "@/components/header";
 
 import {
   Sidebar,
+  SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import SidePanelQuickActions from "./sp-quick-actions";
+import ChatsList from "./chats-list";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  ChevronsUpDownIcon,
+  SettingsIcon,
+  User2Icon,
+  UsersIcon,
+} from "lucide-react";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 export default function ChatSidePanel() {
   const { state } = useSidebar();
@@ -23,14 +45,46 @@ export default function ChatSidePanel() {
       <SidebarHeader>
         <SidebarGroup>
           <SidebarGroupContent>
-            <div className="flex items-center justify-between">
-              <LogoFn className="lg:w-36" />
+            <div
+              className={
+                isCollapsed
+                  ? "flex items-center justify-center"
+                  : "flex items-center justify-between"
+              }
+            >
+              {!isCollapsed && <LogoFn className="lg:w-36" />}
               <SidebarTrigger className="cursor-pointer text-primary" />
             </div>
           </SidebarGroupContent>
         </SidebarGroup>
+
         <SidePanelQuickActions isCollapsed={isCollapsed} />
       </SidebarHeader>
+
+      <SidebarContent>
+        {!isCollapsed && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Your chats</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <ChatsList />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem className="flex items-center justify-center">
+            <UserButton
+              showName
+              appearance={{
+                elements: {
+                  userButtonBox: "text-white",
+                },
+              }}
+            />
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
