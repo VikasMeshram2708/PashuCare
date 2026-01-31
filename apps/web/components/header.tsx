@@ -24,11 +24,11 @@ export default function Header() {
       label: "Home",
     },
     {
-      href: "#",
+      href: "/chat",
       label: "Chat",
     },
     {
-      href: "#",
+      href: "/contact",
       label: "Contact Us",
     },
   ] as const;
@@ -108,7 +108,7 @@ export default function Header() {
   );
 }
 
-function LogoFn({ className }: { className?: string }) {
+export function LogoFn({ className }: { className?: string }) {
   const urlEndpoint = "https://ik.imagekit.io/kxstc2rku";
   return (
     <div>

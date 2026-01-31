@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "./(context)/providers";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Suspense } from "react";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,6 +36,7 @@ export default function RootLayout({
             <Providers>{children}</Providers>
           </ClerkProvider>
         </Suspense>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );
