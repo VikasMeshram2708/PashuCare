@@ -17,7 +17,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input (sticky bottom) */}
-      <ChatInput />
+      <ChatInput userId={user?.id ?? ""} />
     </div>
   );
 }

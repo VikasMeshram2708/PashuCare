@@ -23,7 +23,7 @@ export default function ChatsList() {
           <SidebarMenuItem key={idx}>
             {/* MAIN ROW BUTTON */}
             <SidebarMenuButton asChild>
-              <Link href={`/chat/${idx + 1}`}>
+              <Link prefetch href={`/chat/${idx + 1}`}>
                 <span className="truncate">{idx + 1} Lorem, ipsum.</span>
               </Link>
             </SidebarMenuButton>

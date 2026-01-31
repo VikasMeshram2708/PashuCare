@@ -1,7 +1,6 @@
 "use client";
 
 import { LogoFn } from "@/components/header";
-import { dark } from "@clerk/themes";
 
 import {
   Sidebar,
@@ -20,8 +19,8 @@ import {
 import SidePanelQuickActions from "./sp-quick-actions";
 import ChatsList from "./chats-list";
 
-import { UserButton } from "@clerk/nextjs";
 import { ClipboardPlusIcon, LayoutDashboardIcon } from "lucide-react";
+import UserBtnClient from "./user-btn-client";
 
 export default function ChatSidePanel() {
   const { state } = useSidebar();
@@ -89,15 +88,7 @@ export default function ChatSidePanel() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center justify-center">
-            <UserButton
-              showName
-              appearance={{
-                theme: dark,
-                elements: {
-                  userButtonBox: "text-primary",
-                },
-              }}
-            />
+            <UserBtnClient />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

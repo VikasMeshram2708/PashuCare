@@ -5,34 +5,44 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SendIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
-export default function ChatInput({ userId }: { userId: string }) {
+export default function ActiveChatInput({ id }: { id: string }) {
   const router = useRouter();
+  const { chat } = useChatStore();
+
   const [value, setValue] = useState("");
-  const { createNewChat } = useChatStore();
+
+  const hasLoggedRef = useRef(false);
+
+  const activeChatId = id === chat.chatId;
+
+  // Redirect safely
+  useEffect(() => {
+    if (!activeChatId) {
+      router.push("/chat");
+    }
+  }, [activeChatId, router]);
+
+  // Log ONLY once per activation (even in Strict Mode)
+  useEffect(() => {
+    if (!activeChatId) return;
+    if (hasLoggedRef.current) return;
+
+    console.log("id", chat);
+    hasLoggedRef.current = true;
+  }, [activeChatId, chat]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!value.trim()) return;
-    try {
-      if (!userId) {
-        throw new Error("Unauthorized");
-      }
-      const chatId = createNewChat(value);
-      if (chatId) {
-        router.replace(`/chat/${chatId}`);
-      }
-      // console.log("chatid", chatId);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setValue("");
-    }
+    setValue("");
   }
 
   return (
     <section className="w-full bg-background">
+      {/* <pre>{JSON.stringify(chat, null, 2)}</pre> */}
+
       <form
         onSubmit={onSubmit}
         className="
@@ -41,17 +51,14 @@ export default function ChatInput({ userId }: { userId: string }) {
           focus-within:ring-1 focus-within:ring-primary
         "
       >
-        {/* Textarea */}
         <Textarea
           rows={1}
           value={value}
           onChange={(e) => setValue(e.currentTarget.value)}
           placeholder="Ask anything"
-          className="min-h-10 resize-none border-0 p-2 leading-5 focus-visible:ring-0
-          "
+          className="min-h-10 resize-none border-0 p-2 leading-5 focus-visible:ring-0"
         />
 
-        {/* Send button */}
         <Button
           type="submit"
           size="icon"
