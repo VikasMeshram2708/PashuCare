@@ -1,25 +1,40 @@
-import { notFound } from "next/navigation";
+// app/chat/[id]/page.tsx
+"use client";
+
+import { useParams } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useUser } from "@clerk/nextjs";
+import { Id } from "@/convex/_generated/dataModel";
 import ActiveChatInput from "../components/active-chat-input";
 
-type ChatPageParams = {
-  params: Promise<{
-    id: string;
-  }>;
-};
+export default function ChatIdPage() {
+  const { id } = useParams();
+  const { user } = useUser();
 
-export default async function ChatIdPage({ params }: ChatPageParams) {
-  const { id } = await params;
+  const messagesQuery = useQuery(
+    api.chats.getChatMessages,
+    user?.id && id
+      ? { chatId: id as Id<"chats">, userId: user.id, limit: 100 }
+      : "skip",
+  );
 
-  if (!id) {
-    notFound();
-  }
+  const messages = messagesQuery?.page || [];
+
+  // Check if we need to auto-trigger AI
+  const lastMessage = messages[messages.length - 1];
+  const needsAIResponse = lastMessage?.role === "user" && messages.length === 1;
+
+  if (!user) return <div>Please sign in</div>;
 
   return (
-    <div className="flex h-[90dvh] flex-col bg-background">
-      {/* Chat input pinned to bottom */}
-      <div className="mt-auto">
-        <ActiveChatInput id={id} />
-      </div>
+    <div className="h-[calc(100vh-4rem)]">
+      <ActiveChatInput
+        id={id as Id<"chats">}
+        userId={user.id}
+        initialMessages={messages}
+        autoTrigger={needsAIResponse}
+      />
     </div>
   );
 }

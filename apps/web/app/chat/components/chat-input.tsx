@@ -1,29 +1,37 @@
 "use client";
 
-import { useChatStore } from "@/app/(context)/chat-store";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SendIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { toast } from "sonner";
 
-export default function ChatInput({ userId }: { userId: string }) {
+export default function ChatInput() {
   const router = useRouter();
   const [value, setValue] = useState("");
-  const { createNewChat } = useChatStore();
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!value.trim()) return;
     try {
-      if (!userId) {
-        throw new Error("Unauthorized");
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: value }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        toast.error(json?.errors ?? json?.message ?? "Failed");
+        return;
       }
-      const chatId = createNewChat(value);
-      if (chatId) {
-        router.replace(`/chat/${chatId}`);
-      }
-      // console.log("chatid", chatId);
+      console.log("json", json);
+      const chatId = json?.metadata?.data;
+
+      console.log("chatid", chatId);
+      router.replace(`/chat/${chatId}`);
     } catch (error) {
       console.error(error);
     } finally {

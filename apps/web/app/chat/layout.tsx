@@ -1,8 +1,8 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
-import ChatSidePanel from "./components/chat-sidepanel";
 import ChatHeader from "./components/chat-header";
+import ChatSidePanel from "./components/chat-sidepanel";
 
-export default function ChatLayout({
+export default async function ChatLayout({
   children,
 }: {
   children: React.ReactNode;

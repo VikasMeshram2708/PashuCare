@@ -22,6 +22,7 @@ import ChatsList from "./chats-list";
 import { ClipboardPlusIcon, LayoutDashboardIcon } from "lucide-react";
 import UserBtnClient from "./user-btn-client";
 import Link from "next/link";
+import { Suspense } from "react";
 
 export default function ChatSidePanel() {
   const { state } = useSidebar();
@@ -84,7 +85,9 @@ export default function ChatSidePanel() {
             </SidebarGroupLabel>
 
             <SidebarGroupContent className="min-h-0 flex-1 overflow-y-auto">
-              <ChatsList />
+              <Suspense fallback={<p>Loading chats...</p>}>
+                <ChatsList />
+              </Suspense>
             </SidebarGroupContent>
           </SidebarGroup>
         )}
