@@ -21,6 +21,7 @@ import ChatsList from "./chats-list";
 
 import { ClipboardPlusIcon, LayoutDashboardIcon } from "lucide-react";
 import UserBtnClient from "./user-btn-client";
+import Link from "next/link";
 
 export default function ChatSidePanel() {
   const { state } = useSidebar();
@@ -40,7 +41,11 @@ export default function ChatSidePanel() {
                   : "flex items-center justify-between"
               }
             >
-              {!isCollapsed && <LogoFn className="lg:w-36" />}
+              {!isCollapsed && (
+                <Link href="/">
+                  <LogoFn className="lg:w-36" />
+                </Link>
+              )}
               <SidebarTrigger className="cursor-pointer text-primary" />
             </div>
           </SidebarGroupContent>

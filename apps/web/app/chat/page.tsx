@@ -2,18 +2,22 @@
 
 import { useUser } from "@clerk/nextjs";
 import ChatInput from "./components/chat-input";
+import { LayoutTextFlip } from "@/components/ui/layout-text-flip";
+import { motion } from "motion/react";
 
 export default function ChatPage() {
   const { user } = useUser();
-
+  const text = `Welcome ${user?.firstName ?? user?.fullName ?? "User"}`;
   return (
     <div className="relative flex h-[90dvh] flex-col bg-background">
       {/* Empty / welcome state */}
       <div className="flex flex-1 items-center justify-center px-4">
-        <h1 className="text-center text-lg sm:text-xl md:text-2xl font-medium text-muted-foreground">
-          Hey
-          {user?.firstName ? `, ${user.firstName}` : ""}. Ready to dive in?
-        </h1>
+        <motion.div className="relative mx-4 my-4 flex flex-col items-center justify-center gap-4 text-center sm:mx-0 sm:mb-0 sm:flex-row">
+          <LayoutTextFlip
+            text={text}
+            words={["Aceternity UI", "Fight Club", "The Matrix", "The Jungle"]}
+          />
+        </motion.div>
       </div>
 
       {/* Input (sticky bottom) */}

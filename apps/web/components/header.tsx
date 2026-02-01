@@ -111,7 +111,7 @@ export default function Header() {
 export function LogoFn({ className }: { className?: string }) {
   const urlEndpoint = "https://ik.imagekit.io/kxstc2rku";
   return (
-    <div>
+    <section>
       <ImageKitProvider urlEndpoint={urlEndpoint}>
         <Image
           src="/pashucare/veterinary%20ai/main_logo.png?updatedAt=1769840319703"
@@ -121,6 +121,6 @@ export function LogoFn({ className }: { className?: string }) {
           className={cn("object-cover w-28 md:w-52 h-auto", className)}
         />
       </ImageKitProvider>
-    </div>
+    </section>
   );
 }
