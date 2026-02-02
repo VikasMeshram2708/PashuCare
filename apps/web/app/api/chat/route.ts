@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchMutation } from "convex/nextjs";
+import { ConvexHttpClient } from "convex/browser";
 import * as z from "zod";
 import { api } from "@/convex/_generated/api";
 import { auth } from "@clerk/nextjs/server";
@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       throw new Error("Missing Convex token");
     }
     const body = await req.json();
+
     // sanitize
     const parsed = chatSchema.safeParse(body);
     if (!parsed.success) {
@@ -35,15 +36,15 @@ export async function POST(req: NextRequest) {
       });
     }
     const { text } = parsed.data;
+
     // db operation
-    const result = await fetchMutation(
-      api.chats.createChat,
-      {
-        name: text.substring(0, 40) + (text.length > 40 ? "..." : ""),
-        initialMessage: text,
-      },
-      { token },
-    );
+    const client = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+    client.setAuth(token);
+
+    const result = await client.mutation(api.chats.createChat, {
+      name: text.substring(0, 40) + (text.length > 40 ? "..." : ""),
+      initialMessage: text,
+    });
 
     return new Response(
       JSON.stringify({
