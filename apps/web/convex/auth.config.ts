@@ -9,7 +9,7 @@ export default {
       // and configure CLERK_JWT_ISSUER_DOMAIN on the Convex Dashboard
       // See https://docs.convex.dev/auth/clerk#configuring-dev-and-prod-instances
       // TODO: Remove the hardcoded issuer domain
-      domain: env.CLERK_JWT_ISSUER_DOMAIN,
+      domain: env.CLERK_JWT_ISSUER_DOMAIN as string,
       applicationID: "convex",
     },
   ],
