@@ -15,23 +15,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Parse the incoming FormData from the request
-    const formData = await req.formData();
-    const file = formData.get("report-file") as File | null;
+    // Check if the request is JSON (e.g. from DetailsCard) or FormData (e.g. from UploadArea)
+    const contentType = req.headers.get("content-type") || "";
+    let buffer: Buffer;
+    let fileName: string;
 
-    if (!file) {
-      return NextResponse.json(
-        { success: false, message: "No file provided" },
-        { status: 400 },
-      );
+    if (contentType.includes("application/json")) {
+      const { imageUrl } = await req.json();
+      if (!imageUrl) {
+        return NextResponse.json(
+          { success: false, message: "No image URL provided" },
+          { status: 400 },
+        );
+      }
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error("Failed to fetch file from URL");
+      const bytes = await response.arrayBuffer();
+      buffer = Buffer.from(bytes);
+      fileName = "report-file.pdf"; // Fallback name
+    } else {
+      const formData = await req.formData();
+      const file = formData.get("report-file") as File | null;
+
+      if (!file) {
+        return NextResponse.json(
+          { success: false, message: "No file provided" },
+          { status: 400 },
+        );
+      }
+
+      const bytes = await file.arrayBuffer();
+      buffer = Buffer.from(bytes);
+      fileName = file.name;
     }
 
-    // Convert File to Buffer for OpenAI SDK
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     // Create a temporary file path
-    const tempPath = `/tmp/${file.name}`;
+    const tempPath = `/tmp/${fileName}`;
     fs.writeFileSync(tempPath, buffer);
 
     const file_object = await client.files.create({

@@ -11,12 +11,13 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { FileTextIcon, Trash2Icon, Loader2 } from "lucide-react";
+import { FileTextIcon, Trash2Icon, Loader2, SparklesIcon } from "lucide-react";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { formatRelativeTime } from "@/lib/format-time";
+import { Badge } from "@/components/ui/badge";
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -32,6 +33,7 @@ interface Report {
   sizeBytes: number;
   createdAt: number;
   mimeType: string;
+  analysis?: string;
 }
 
 export default function ReportsTable() {
@@ -109,6 +111,15 @@ export default function ReportsTable() {
                   <span className="truncate max-w-50 sm:max-w-75">
                     {report.fileName}
                   </span>
+                  {report.analysis && (
+                    <Badge
+                      variant="secondary"
+                      className="ml-2 gap-1 bg-primary/10 text-primary hover:bg-primary/20 border-none px-1.5 py-0"
+                    >
+                      <SparklesIcon className="h-3 w-3" />
+                      Analyzed
+                    </Badge>
+                  )}
                 </Link>
               </TableCell>
 

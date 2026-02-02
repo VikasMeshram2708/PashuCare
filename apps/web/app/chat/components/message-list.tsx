@@ -25,6 +25,26 @@ interface MessageListProps {
   onDismissError?: () => void;
 }
 
+// Aggressive spacing fixes for headings
+export const assistantProseClasses = cn(
+  "prose prose-slate dark:prose-invert max-w-none w-full",
+  // Heading spacing - force margin top and bottom
+  "[&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:font-semibold [&_h1]:text-lg",
+  "[&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:font-semibold [&_h2]:text-base",
+  "[&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:font-semibold [&_h3]:text-base",
+  "[&_strong]:font-semibold",
+  // Paragraph spacing
+  "[&_p]:my-3 [&_p]:leading-7",
+  // Lists
+  "[&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5",
+  "[&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5",
+  "[&_li]:my-1.5",
+  "[&_li>p]:my-0", // Remove p margin inside li
+  // Horizontal rules
+  "[&_hr]:my-6 [&_hr]:border-t [&_hr]:border-border/50",
+  // Blockquotes
+  "[&_blockquote]:border-l-2 [&_blockquote]:border-muted-foreground/30 [&_blockquote]:pl-4 [&_blockquote]:py-1 [&_blockquote]:my-4 [&_blockquote]:not-italic [&_blockquote]:text-muted-foreground",
+);
 export default function MessageList({
   messages,
   isLoadingMore,
@@ -81,27 +101,6 @@ export default function MessageList({
   const displayMessages = [...messages]
     .filter((m) => m.status !== "streaming")
     .reverse();
-
-  // Aggressive spacing fixes for headings
-  const assistantProseClasses = cn(
-    "prose prose-slate dark:prose-invert max-w-none w-full",
-    // Heading spacing - force margin top and bottom
-    "[&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:font-semibold [&_h1]:text-lg",
-    "[&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:font-semibold [&_h2]:text-base",
-    "[&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:font-semibold [&_h3]:text-base",
-    "[&_strong]:font-semibold",
-    // Paragraph spacing
-    "[&_p]:my-3 [&_p]:leading-7",
-    // Lists
-    "[&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5",
-    "[&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5",
-    "[&_li]:my-1.5",
-    "[&_li>p]:my-0", // Remove p margin inside li
-    // Horizontal rules
-    "[&_hr]:my-6 [&_hr]:border-t [&_hr]:border-border/50",
-    // Blockquotes
-    "[&_blockquote]:border-l-2 [&_blockquote]:border-muted-foreground/30 [&_blockquote]:pl-4 [&_blockquote]:py-1 [&_blockquote]:my-4 [&_blockquote]:not-italic [&_blockquote]:text-muted-foreground",
-  );
 
   const userProseClasses = cn(
     "prose prose-sm prose-invert max-w-none",

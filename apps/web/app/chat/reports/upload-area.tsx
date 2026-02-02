@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// upload-area.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +21,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { assistantProseClasses } from "../components/message-list";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
@@ -303,7 +302,8 @@ export default function UploadArea({ chatId }: UploadAreaProps) {
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[500px] p-6">
-              <div className="prose prose-sm dark:prose-invert max-w-none pb-10">
+              {/* Here */}
+              <div className={assistantProseClasses}>
                 <Markdown remarkPlugins={[remarkGfm]}>{analysis}</Markdown>
                 {isAnalyzing && !analysis && (
                   <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-4">
