@@ -44,6 +44,7 @@ export default defineSchema({
     fileName: v.string(),
     mimeType: v.string(), // e.g application/pdf
     sizeBytes: v.number(),
+    analysis: v.optional(v.string()), // AI generated analysis content
     createdAt: v.number(),
     updatedAt: v.optional(v.number()),
   })

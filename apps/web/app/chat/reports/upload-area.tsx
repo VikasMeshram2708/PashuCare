@@ -21,6 +21,8 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
@@ -39,6 +41,7 @@ export default function UploadArea({ chatId }: UploadAreaProps) {
 
   const generateUploadUrl = useMutation(api.uploader.generateUploadUrl);
   const saveReport = useMutation(api.uploader.saveReport);
+  const saveAnalysis = useMutation(api.uploader.saveAnalysis);
 
   const validate = (f: File) => {
     if (f.type !== "application/pdf") {
@@ -61,6 +64,7 @@ export default function UploadArea({ chatId }: UploadAreaProps) {
   const handleUpload = async () => {
     if (!file) return;
     setIsUploading(true);
+    setAnalysis("");
 
     try {
       const postUrl = await generateUploadUrl();
@@ -74,18 +78,13 @@ export default function UploadArea({ chatId }: UploadAreaProps) {
 
       const { storageId } = await uploadRes.json();
 
-      // storageId maps to fileId in schema
-      // Line 72 area - Remove userId from the call
-      await saveReport({
-        chatId,
-        fileId: storageId,
-        fileName: file.name,
-        mimeType: file.type,
-        sizeBytes: file.size,
-      });
-      await handleAnalyze();
-      toast.success("Report uploaded successfully");
-      setFile(null);
+      // Start analysis first. We will save the report ONLY if analysis starts successfully.
+      const analysisResult = await handleAnalyze(storageId);
+
+      if (analysisResult) {
+        toast.success("Report uploaded and analysis started");
+        setFile(null);
+      }
     } catch (err) {
       toast.error("Upload failed");
       console.error(err);
@@ -97,8 +96,8 @@ export default function UploadArea({ chatId }: UploadAreaProps) {
   const formatSize = (bytes: number) =>
     (bytes / 1024 / 1024).toFixed(2) + " MB";
 
-  async function handleAnalyze() {
-    if (!file) return;
+  async function handleAnalyze(storageId?: Id<"_storage">) {
+    if (!file) return null;
 
     setIsAnalyzing(true);
     setAnalysis("");
@@ -111,11 +110,12 @@ export default function UploadArea({ chatId }: UploadAreaProps) {
         method: "POST",
         body: formData,
       });
+
       if (response.status === 429) {
         toast.error(
           "The engine is currently overloaded, please try again later",
         );
-        return;
+        return null;
       }
       if (!response.ok) {
         const error = await response.json();
@@ -124,6 +124,19 @@ export default function UploadArea({ chatId }: UploadAreaProps) {
 
       if (!response.body) {
         throw new Error("No response body");
+      }
+
+      // If we have a storageId, it means we're in the initial upload flow.
+      // Save the report record now that we know analysis has started.
+      let reportId: Id<"reports"> | undefined;
+      if (storageId) {
+        reportId = await saveReport({
+          chatId,
+          fileId: storageId,
+          fileName: file.name,
+          mimeType: file.type,
+          sizeBytes: file.size,
+        });
       }
 
       const reader = response.body.getReader();
@@ -139,21 +152,45 @@ export default function UploadArea({ chatId }: UploadAreaProps) {
         setAnalysis(fullAnalysis);
       }
 
+      // Once streaming is complete, save the final analysis to the database
+      if (reportId) {
+        await saveAnalysis({
+          reportId,
+          analysis: fullAnalysis,
+        });
+      }
+
       toast.success("Analysis Complete", {
         description: "AI report analysis has been generated successfully.",
         icon: <CheckCircleIcon className="h-4 w-4" />,
       });
+
+      return fullAnalysis;
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
+      return null;
     } finally {
       setIsAnalyzing(false);
     }
   }
 
   return (
-    <section className="flex gap-4 md:gap-8">
-      <Card className="max-w-md border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors">
+    <section
+      className={cn(
+        "flex flex-col gap-6 transition-all duration-500",
+        analysis || isAnalyzing
+          ? "md:flex-row items-start"
+          : "items-center justify-center py-10",
+      )}
+    >
+      <Card
+        className={cn(
+          "w-full transition-all duration-500 border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40",
+          analysis || isAnalyzing ? "md:max-w-md" : "max-w-2xl",
+          isAnalyzing && "ring-2 ring-primary/20",
+        )}
+      >
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-lg font-semibold">
             <Stethoscope className="w-5 h-5 text-primary" />
@@ -247,11 +284,39 @@ export default function UploadArea({ chatId }: UploadAreaProps) {
           )}
         </CardContent>
       </Card>
-      {/* Streaming */}
-      {analysis && (
-        <div>
-          <Markdown remarkPlugins={[remarkGfm]}>{analysis}</Markdown>
-        </div>
+
+      {/* Streaming Analysis Area */}
+      {(analysis || isAnalyzing) && (
+        <Card className="flex-1 w-full animate-in fade-in slide-in-from-right-4 duration-500 overflow-hidden">
+          <CardHeader className="border-b bg-muted/30 pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Loader2
+                className={cn(
+                  "w-4 h-4 text-primary",
+                  isAnalyzing && "animate-spin",
+                )}
+              />
+              {isAnalyzing
+                ? "AI is analyzing your report..."
+                : "Analysis Results"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ScrollArea className="h-[500px] p-6">
+              <div className="prose prose-sm dark:prose-invert max-w-none pb-10">
+                <Markdown remarkPlugins={[remarkGfm]}>{analysis}</Markdown>
+                {isAnalyzing && !analysis && (
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-4">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
+                    <p className="text-sm animate-pulse">
+                      Extracting and analyzing laboratory data...
+                    </p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
       )}
     </section>
   );

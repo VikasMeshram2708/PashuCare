@@ -24,6 +24,7 @@ export type ReportType =
       fileName: string;
       mimeType: string;
       sizeBytes: number;
+      analysis?: string | undefined;
     }
   | undefined;
 

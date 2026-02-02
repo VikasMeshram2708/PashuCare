@@ -17,6 +17,7 @@ export const saveReport = mutation({
     fileName: v.string(),
     mimeType: v.string(),
     sizeBytes: v.number(),
+    analysis: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -31,7 +32,29 @@ export const saveReport = mutation({
       fileName: args.fileName,
       mimeType: args.mimeType,
       sizeBytes: args.sizeBytes,
+      analysis: args.analysis,
       createdAt: Date.now(),
+    });
+  },
+});
+
+export const saveAnalysis = mutation({
+  args: {
+    reportId: v.id("reports"),
+    analysis: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+
+    const report = await ctx.db.get(args.reportId);
+    if (!report || report.userId !== identity.subject) {
+      throw new Error("Not authorized");
+    }
+
+    await ctx.db.patch(args.reportId, {
+      analysis: args.analysis,
+      updatedAt: Date.now(),
     });
   },
 });

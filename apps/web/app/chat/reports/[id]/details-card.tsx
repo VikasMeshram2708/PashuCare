@@ -20,13 +20,23 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ReportType } from "./details";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export default function DetailsCard({ report }: { report: ReportType }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<string>("");
-  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [analysis, setAnalysis] = useState<string>(report?.analysis || "");
+  const [showAnalysis, setShowAnalysis] = useState(!!report?.analysis);
+  const saveAnalysis = useMutation(api.uploader.saveAnalysis);
+
+  useEffect(() => {
+    if (report?.analysis) {
+      setAnalysis(report.analysis);
+      setShowAnalysis(true);
+    }
+  }, [report?.analysis]);
 
   function formatDate(timestamp: number): string {
     return new Date(timestamp).toLocaleDateString("en-US", {
@@ -83,6 +93,14 @@ export default function DetailsCard({ report }: { report: ReportType }) {
         const chunk = decoder.decode(value, { stream: true });
         fullAnalysis += chunk;
         setAnalysis(fullAnalysis);
+      }
+
+      // Save analysis to database upon completion
+      if (report?._id) {
+        await saveAnalysis({
+          reportId: report._id,
+          analysis: fullAnalysis,
+        });
       }
 
       toast.success("Analysis Complete", {
