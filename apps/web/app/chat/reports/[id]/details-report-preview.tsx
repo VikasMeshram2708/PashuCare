@@ -40,21 +40,24 @@ export default function DetailsReportPreview({
         </div>
         <div
           className={cn(
-            "bg-white transition-all duration-300 ease-in-out overflow-hidden",
+            "bg-white transition-all duration-500 ease-in-out overflow-hidden relative",
             isVisible
-              ? "h-[calc(100vh-280px)] min-h-125 opacity-100"
+              ? "h-[calc(100vh-280px)] min-h-[600px] opacity-100"
               : "h-0 min-h-0 opacity-0",
           )}
         >
           {report?.url ? (
             <iframe
               src={report.url}
-              className="w-full h-full border-0"
+              className="w-full h-full border-0 absolute inset-0"
               title={report.fileName}
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              Unable to load preview
+            <div className="flex items-center justify-center h-full text-muted-foreground bg-slate-50">
+              <div className="text-center space-y-2">
+                <FileTextIcon className="h-8 w-8 mx-auto opacity-20" />
+                <p>Unable to load preview</p>
+              </div>
             </div>
           )}
         </div>

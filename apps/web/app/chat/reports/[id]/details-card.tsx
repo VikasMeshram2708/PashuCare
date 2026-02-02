@@ -15,29 +15,22 @@ import {
   HardDriveIcon,
   SparklesIcon,
   Loader2Icon,
-  AlertCircleIcon,
-  CheckCircleIcon,
 } from "lucide-react";
-import { toast } from "sonner";
 import { ReportType } from "./details";
-import { useState, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
 
-export default function DetailsCard({ report }: { report: ReportType }) {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<string>(report?.analysis || "");
-  const [showAnalysis, setShowAnalysis] = useState(!!report?.analysis);
-  const saveAnalysis = useMutation(api.uploader.saveAnalysis);
+interface DetailsCardProps {
+  report: ReportType;
+  isAnalyzing: boolean;
+  onAnalyze: () => Promise<void>;
+  hasAnalysis: boolean;
+}
 
-  useEffect(() => {
-    if (report?.analysis) {
-      setAnalysis(report.analysis);
-      setShowAnalysis(true);
-    }
-  }, [report?.analysis]);
-
+export default function DetailsCard({
+  report,
+  isAnalyzing,
+  onAnalyze,
+  hasAnalysis,
+}: DetailsCardProps) {
   function formatDate(timestamp: number): string {
     return new Date(timestamp).toLocaleDateString("en-US", {
       year: "numeric",
@@ -55,75 +48,6 @@ export default function DetailsCard({ report }: { report: ReportType }) {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   }
-
-  const handleAnalyze = async () => {
-    if (!report?.url) {
-      toast.error("Error", { description: "No report URL available" });
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setAnalysis("");
-    setShowAnalysis(true);
-
-    try {
-      const response = await fetch("/api/report/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: report.url }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to start analysis");
-      }
-
-      if (!response.body) {
-        throw new Error("No response body");
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let fullAnalysis = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        fullAnalysis += chunk;
-        setAnalysis(fullAnalysis);
-      }
-
-      // Save analysis to database upon completion
-      if (report?._id) {
-        await saveAnalysis({
-          reportId: report._id,
-          analysis: fullAnalysis,
-        });
-      }
-
-      toast.success("Analysis Complete", {
-        description: "AI report analysis has been generated successfully.",
-        icon: <CheckCircleIcon className="h-4 w-4" />,
-      });
-    } catch (error) {
-      console.error("Analysis error:", error);
-      toast.error("Analysis Failed", {
-        description:
-          error instanceof Error ? error.message : "Something went wrong",
-        icon: <AlertCircleIcon className="h-4 w-4" />,
-      });
-      setShowAnalysis(false);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleClearAnalysis = () => {
-    setAnalysis("");
-    setShowAnalysis(false);
-  };
 
   return (
     <div className="lg:col-span-2 space-y-4">
@@ -195,10 +119,10 @@ export default function DetailsCard({ report }: { report: ReportType }) {
               identify potential concerns, and get recommendations.
             </p>
 
-            {!showAnalysis ? (
+            {!hasAnalysis || isAnalyzing ? (
               <Button
                 className="w-full h-11 font-medium shadow-sm"
-                onClick={handleAnalyze}
+                onClick={onAnalyze}
                 disabled={isAnalyzing}
               >
                 {isAnalyzing ? (
@@ -209,7 +133,7 @@ export default function DetailsCard({ report }: { report: ReportType }) {
                 ) : (
                   <>
                     <SparklesIcon className="mr-2 h-4 w-4" />
-                    Analyze with AI
+                    {hasAnalysis ? "Re-analyze with AI" : "Analyze with AI"}
                   </>
                 )}
               </Button>
@@ -217,44 +141,13 @@ export default function DetailsCard({ report }: { report: ReportType }) {
               <div className="space-y-3">
                 <Button
                   variant="outline"
-                  className="w-full h-11 font-medium"
-                  onClick={handleClearAnalysis}
+                  className="w-full h-11 font-medium border-primary/20 hover:border-primary/40 hover:bg-primary/5 text-primary"
+                  onClick={onAnalyze}
                   disabled={isAnalyzing}
                 >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    "Clear Analysis"
-                  )}
+                  <SparklesIcon className="mr-2 h-4 w-4" />
+                  Re-analyze with AI
                 </Button>
-
-                {/* Analysis Results */}
-                <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
-                  <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                    <SparklesIcon className="h-4 w-4 text-primary" />
-                    Analysis Results
-                  </h5>
-                  <div className="prose prose-sm max-w-none dark:prose-invert">
-                    {analysis ? (
-                      <ReactMarkdown>{analysis}</ReactMarkdown>
-                    ) : (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Loader2Icon className="h-4 w-4 animate-spin" />
-                        <span className="text-sm">
-                          Waiting for AI response...
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <p className="text-xs text-muted-foreground text-center">
-                  ⚠️ This is AI-assisted analysis. Always consult with a
-                  veterinarian for medical decisions.
-                </p>
               </div>
             )}
           </div>

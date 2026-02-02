@@ -6,10 +6,18 @@ import { Id } from "@/convex/_generated/dataModel";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeftIcon, AlertCircleIcon } from "lucide-react";
 import Link from "next/link";
 import DetailsCard from "./details-card";
 import DetailsReportPreview from "./details-report-preview";
+import AnalysisResult from "./analysis-result";
+import { useState, useEffect } from "react";
+import { useMutation } from "convex/react";
+import { toast } from "sonner";
+import {
+  CheckCircleIcon,
+  AlertCircleIcon,
+  ChevronLeftIcon,
+} from "lucide-react";
 
 export type ReportType =
   | {
@@ -30,6 +38,81 @@ export type ReportType =
 
 export default function Details({ id }: { id: Id<"reports"> }) {
   const report = useQuery(api.uploader.getReport, { id });
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<string>("");
+  const saveAnalysis = useMutation(api.uploader.saveAnalysis);
+
+  useEffect(() => {
+    if (report?.analysis) {
+      setAnalysis(report.analysis);
+    }
+  }, [report?.analysis]);
+
+  const handleAnalyze = async () => {
+    if (!report?.url) {
+      toast.error("Error", { description: "No report URL available" });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysis("");
+
+    try {
+      const response = await fetch("/api/report/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: report.url }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to start analysis");
+      }
+
+      if (!response.body) {
+        throw new Error("No response body");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullAnalysis = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        fullAnalysis += chunk;
+        setAnalysis(fullAnalysis);
+      }
+
+      // Save analysis to database upon completion
+      if (report?._id) {
+        await saveAnalysis({
+          reportId: report._id,
+          analysis: fullAnalysis,
+        });
+      }
+
+      toast.success("Analysis Complete", {
+        description: "AI report analysis has been generated successfully.",
+        icon: <CheckCircleIcon className="h-4 w-4" />,
+      });
+    } catch (error) {
+      console.error("Analysis error:", error);
+      toast.error("Analysis Failed", {
+        description:
+          error instanceof Error ? error.message : "Something went wrong",
+        icon: <AlertCircleIcon className="h-4 w-4" />,
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleClearAnalysis = () => {
+    setAnalysis("");
+  };
 
   if (report === undefined) {
     return <DetailedReportSkeleton />;
@@ -57,28 +140,42 @@ export default function Details({ id }: { id: Id<"reports"> }) {
   }
 
   return (
-    <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <Button
-          asChild
-          variant="ghost"
-          className="pl-0 hover:pl-2 transition-all"
-        >
-          <Link href="/chat/reports">
-            <ChevronLeftIcon className="mr-2 h-4 w-4" />
-            Back to Reports
-          </Link>
-        </Button>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <Button
+            asChild
+            variant="ghost"
+            className="pl-0 hover:pl-2 transition-all group"
+          >
+            <Link href="/chat/reports">
+              <ChevronLeftIcon className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              Back to Reports
+            </Link>
+          </Button>
+        </div>
 
-      {/* Main Content - Split View */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-        {/* Left Side - PDF Preview (takes 3/5 on desktop) */}
-        <DetailsReportPreview report={report} />
+        {/* Main Content - Row 1 */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+          {/* Left Side - PDF Preview (takes 3/5 on desktop) */}
+          <DetailsReportPreview report={report} />
 
-        {/* Right Side - Details (takes 2/5 on desktop) */}
-        <DetailsCard report={report} />
+          {/* Right Side - Details (takes 2/5 on desktop) */}
+          <DetailsCard
+            report={report}
+            isAnalyzing={isAnalyzing}
+            onAnalyze={handleAnalyze}
+            hasAnalysis={!!analysis}
+          />
+        </div>
+
+        {/* Row 2 - Analysis Result (Full Width) */}
+        <AnalysisResult
+          analysis={analysis}
+          isAnalyzing={isAnalyzing}
+          onClear={handleClearAnalysis}
+        />
       </div>
     </div>
   );
