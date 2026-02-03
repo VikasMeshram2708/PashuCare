@@ -26,15 +26,15 @@ const SYSTEM_PROMPT = {
 
 export async function POST(
   req: NextRequest,
-  // { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    // const { id } = await params;
-    // const chatId = id as Id<"chats">;
+    const { id } = await params;
+    const chatId = id as string; // We'll validate this in the component
     const body = await req.json();
 
-    // console.log("Chat ID:", chatId);
-    // console.log("Request body:", body);
+    console.log("Chat ID:", chatId);
+    console.log("Request body:", body);
 
     // Validate request body
     const parsed = chatRequestSchema.safeParse(body);

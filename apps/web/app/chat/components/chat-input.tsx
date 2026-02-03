@@ -23,14 +23,24 @@ export default function ChatInput() {
         body: JSON.stringify({ text: value }),
       });
       const json = await res.json();
+      console.log("API Response:", json);
+
       if (!json.success) {
-        toast.error(json?.errors ?? json?.message ?? "Failed");
+        console.error("API Error:", json);
+        toast.error(json?.error ?? json?.errors ?? json?.message ?? "Failed");
         return;
       }
       console.log("json", json);
       const chatId = json?.metadata?.data;
 
       console.log("chatid", chatId);
+
+      if (!chatId) {
+        console.error("No chat ID returned from API");
+        toast.error("Failed to create chat session");
+        return;
+      }
+
       router.replace(`/chat/${chatId}`);
     } catch (error) {
       console.error(error);
