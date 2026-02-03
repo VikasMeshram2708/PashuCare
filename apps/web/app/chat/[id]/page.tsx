@@ -43,14 +43,14 @@ export default function ChatIdPage() {
     );
   }
 
-  // Chat was deleted or doesn't exist
-  if (chat === null) {
+  // Don't render the component if ID is invalid or chat doesn't exist
+  if (!isIdValid || chat === null) {
     return null; // Will redirect via useEffect
   }
 
   return (
     <div className="h-[calc(100vh-4rem)]">
-      <ActiveChatInput id={id as Id<"chats">} autoTrigger={true} />
+      <ActiveChatInput id={chatId as Id<"chats">} autoTrigger={true} />
     </div>
   );
 }

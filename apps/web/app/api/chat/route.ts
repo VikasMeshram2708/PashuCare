@@ -60,11 +60,16 @@ export async function POST(req: NextRequest) {
       },
     );
   } catch (error) {
-    console.error(error);
+    console.error("Chat API Error:", {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
     return NextResponse.json(
       {
         success: false,
         message: "Something went wrong.",
+        error: error instanceof Error ? error.message : "Unknown error",
       },
       {
         status: 500,

@@ -49,14 +49,14 @@ export default function ActiveChatInput({
   const createMessage = useMutation(api.chats.createMessage);
   const updateMessage = useMutation(api.chats.updateMessage);
 
-  // Paginated Query
+  // Paginated Query - only run if ID is valid
   const {
     results: paginatedMessages,
     loadMore,
     status: paginationStatus,
   } = usePaginatedQuery(
     api.chats.getChatMessages,
-    { chatId: id },
+    isValidConvexId(id) ? { chatId: id } : "skip",
     { initialNumItems: 20 },
   );
 
