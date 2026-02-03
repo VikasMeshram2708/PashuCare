@@ -74,7 +74,7 @@ export default function ChatsList() {
     initialNumItems: 20,
   });
 
-  const chats = rawChats.filter((chat) => isValidConvexId(chat._id));
+  const chats = (rawChats || []).filter((chat) => isValidConvexId(chat._id));
 
   const deleteChat = useMutation(api.chats.softDeleteChat);
   const renameChat = useMutation(api.chats.renameChat);
