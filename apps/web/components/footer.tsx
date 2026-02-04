@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LogoFn } from "./header";
 
 export function Footer() {
   const links = [
@@ -16,12 +17,9 @@ export function Footer() {
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           {/* Brand + Copyright */}
           <div className="flex flex-col gap-1">
-            <Link href="#" className="text-sm font-semibold tracking-tight">
-              PashuCare AI
+            <Link href="/">
+              <LogoFn />
             </Link>
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} PashuCare AI. All rights reserved.
-            </p>
           </div>
 
           {/* Legal / Utility Links */}
@@ -30,13 +28,16 @@ export function Footer() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="text-xs text-foreground hover:text-primary transition-colors"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
         </div>
+        <p className="text-center text-xs text-muted-foreground">
+          © {new Date().getFullYear()} PashuCare. All rights reserved.
+        </p>
       </div>
     </footer>
   );

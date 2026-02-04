@@ -121,11 +121,11 @@ export function LogoFn({ className }: { className?: string }) {
     <div>
       <ImageKitProvider urlEndpoint={urlEndpoint}>
         <Image
-          src="/pashucare/veterinary%20ai/main_logo.png?updatedAt=1769840319703"
+          src="/pashucare/veterinary%20ai/navbar-logo.png"
           width={200}
           height={10}
           alt="Logo"
-          className={cn("object-cover w-28 md:w-52 h-auto", className)}
+          className={cn("object-cover w-28 md:w-52 h-auto md:h-14", className)}
           priority
         />
       </ImageKitProvider>
